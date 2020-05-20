@@ -1,0 +1,73 @@
+{% extends "blog/base.html" %}
+{% block content %}
+  <h1 class="mb-3" >Posts by {{ view.kwargs.username }} ({{ page_obj.paginator.count }})</h1>
+  {% for post in posts %}
+  <article class="media content-section">
+    <div class="row pr-1 m-0" style="width: 100%;">
+      <div class="media col-md-12 p-0 m-0">
+        <img class="rounded-circle article-img" src="{{ post.author.profile.image.url }}">
+        <div class="media-body">
+          <div class="article-metadata">
+            <a class="mr-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
+            <small class="text-muted">{{ post.date_posted | date:"F d, Y" }}</small>
+          </div>
+          <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
+          <p class="article-content">{{ post.content }}</p>
+          {% if post.images %}
+          <div class="mb-3">
+            <img class="img-fluid rounded" src="{{ post.images.url }}" alt="...">
+          </div>
+          {% endif %}
+          <a class="btn btn-primary btn-sm mt-1 mb-1" data-toggle="collapse" href="#collapseExample_{{ post.id }}" role="button" aria-expanded="false" aria-controls="collapseExample_{{ post.id }}">
+            Comments <span class="badge badge-light">{{ post.comments.count }}</span>
+          </a>
+          <a href="{% url 'post-likes' post.pk %}" class="btn btn-success btn-sm mt-1 mb-1">Likes <span class="badge badge-light">{{ post.likes.count }}</span></a>
+          <a href="{% url 'post-dislikes' post.pk %}" class="btn btn-danger btn-sm mt-1 mb-1">Dislikes <span class="badge badge-light">{{ post.dislikes.count }}</span></a>
+          <div class="collapse mt-3" id="collapseExample_{{ post.id }}">
+            <div class="card card-body p-2">
+              {% for comment in post.comments.all reversed %}
+                  <p class="comment align-middle m-0 p-0">
+                    <a class="p-0 mr-2 font-weight-bold" href="{% url 'user-posts' comment.author.username %}">{{ comment.author }} </a>
+                    {{ comment.text }}
+                  </p>
+              {% empty %}
+                No comments here yet :(
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-12 mt-2">
+        <form method="POST" action="{% url 'post-detail' post.pk %}?next={% url 'blog-home' %}" class="commenting-form">
+          {% csrf_token %}
+              <div class="input-group mb-1">
+                <input type="text" class="form-control" placeholder="Add a comment..." name="text" id="text_id">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-secondary" type="submit" id="text_id">
+                    Post
+                  </button>
+                </div>
+              </div>
+        </form>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+  {% if is_paginated %}
+    {% if page_obj.has_previous %}
+      <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+      <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+      <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
+      <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+    {% endif %}
+  {% endif %}
+{% endblock content %}
