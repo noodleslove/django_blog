@@ -1,65 +1,33 @@
-{% extends 'blog/base.html' %}
 {% load static %}
-{% block content %}
-    <h1>Testing functions</h1>
-    {% for post in posts %}
-        <article class="media content-section clearfix" id="{{ post.pk }}">
-        <div class="row pr-1 m-0" style="width: 100%;">
-            <div class="media col-md-12 p-0 m-0">
-            <img class="rounded-circle article-img" src="{{ post.author.profile.image.url }}">
-            <div class="media-body">
-                <div class="article-metadata">
-                <a class="mr-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
-                <small class="text-muted">{{ post.date_posted | date:"F d, Y" }}</small>
-                </div>
-                <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
-                <p class="article-content">{{ post.content }}</p>
-                {% if post.images %}
-                <div class="mb-3">
-                    <img class="img-fluid rounded" src="{{ post.images.url }}" alt="...">
-                </div>
-                {% endif %}
-                <a class="text-decoration-none mr-2" data-toggle="collapse" href="#collapseExample_{{ post.id }}" role="button" aria-expanded="false" aria-controls="collapseExample_{{ post.id }}">
-                {% if post.comments.count %}
-                    <i class="fas fa-comment-dots fa-2x"></i>
-                {% else %}
-                    <i class="far fa-comment fa-2x"></i>
-                {% endif %}
-                </a>
-                <button class="text-decoration-none" role="button" id="btn-like">
-                    <i class="fas fa-heart fa-2x" style="color: tomato;"></i>
-                    <i class="far fa-heart fa-2x" style="color: tomato;"></i>
-                </button>
-                <a href="{% url 'post-dislikes' post.pk %}" class="btn btn-danger btn-sm mt-1 mb-1">Dislikes <span class="badge badge-light">{{ post.dislikes.count }}</span></a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
+  <script src="{% static 'blog/script.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'blog/style.css' %}">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V" crossorigin="anonymous">
+  <title>The Complete jQuery Course - Course Code</title>
+</head>
+<body>
+  <div id="content">
+    <h1>The Complete jQuery Course - Project Structure</h1>
+
+    <div class="red-box">Red</div>
+    <div class="green-box">Green</div>
+    <div class="blue-box">Blue</div>
+    <div class="clear"></div>
+    <div>
+      <form action="/post/1/" method="POST" class="comment-form" data-index-number="1">
+        {% csrf_token %}
+          <div class="input-group mb-1">
+            <input type="text" class="form-control" placeholder="Add a comment..." id="comment-1">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="submit">Post</button>
             </div>
-            </div>
-            <div class="collapse mt-2 mb-2 col-md-12" id="collapseExample_{{ post.id }}">
-            <div class="card card-body p-2">
-                {% for comment in post.comments.all reversed %}
-                    <p class="comment align-middle m-0 p-0">
-                    <a class="p-0 mr-2 font-weight-bold" href="{% url 'user-posts' comment.author.username %}">{{ comment.author }} </a>
-                    {{ comment.text }}
-                    </p>
-                {% empty %}
-                No comments here yet :(
-                {% endfor %}
-            </div>
-            </div>
-            <div class="col-md-12 mt-2">
-            <form method="POST" action="{% url 'post-detail' post.pk %}?next={% url 'blog-home' %}" class="commenting-form">
-                {% csrf_token %}
-                    <div class="input-group mb-1">
-                    <input type="text" class="form-control" placeholder="Add a comment..." name="text" id="text_id">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="submit" id="text_id">
-                        Post
-                        </button>
-                    </div>
-                    </div>
-            </form>
-            </div>
-        </div>
-        </article>
-    {% endfor %}
-    <script src="{% static 'blog/likes.js' %}"></script>
-{% endblock content %}
+          </div>
+      </form>
+      <ul id="talk"></ul>
+    </div>
+</body>
+</html>

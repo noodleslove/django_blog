@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.views.generic import (
     ListView,
@@ -12,6 +13,10 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse, HttpResponse
+from django.forms.models import model_to_dict
+
 
 
 def home(request):
@@ -48,12 +53,68 @@ def detail_view(request, pk):
 
     return render(request, 'blog/post_detail.html', context)
 
+
 def test(request):
     content = {
         'posts': Post.objects.all(),
         'latest': Post.objects.order_by('-date_posted')[0],
     }
     return render(request, 'blog/test.html', content)
+
+
+@login_required
+def likes_toggle(request, pk):
+    if request.method == 'POST':
+        response_data = {}
+
+        post = get_object_or_404(Post, pk=pk)
+        user = request.user
+
+        if user in post.likes.all():
+            post.likes.remove(user)
+            response_data['status'] = 'removed'
+        else:
+            post.likes.add(user)
+            response_data['status'] = 'added'
+
+        response_data['postPk'] = pk
+        response_data['author'] = request.user.username
+
+        return JsonResponse(response_data, status=200)
+
+    if request.method == 'GET':
+        response_data = {}
+
+        post = get_object_or_404(Post, pk=pk)
+        user = request.user
+
+        if user in post.likes.all():
+            response_data['current'] = 'liked'
+        else:
+            response_data['current'] = 'blank'
+
+        return JsonResponse(response_data, status=200)
+
+
+@login_required
+def comment_create(request, pk):
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            response_data = {}
+            comment_text = request.POST.get('commentText')
+            post = get_object_or_404(Post, pk=pk);
+            comment = Comment(text=comment_text, author=request.user, post=post)
+            comment.save()
+
+            response_data['result'] = 'Create post successful!'
+            response_data['postPk'] = pk
+            response_data['text'] = comment.text
+            response_data['author'] = comment.author.username
+
+            return HttpResponse(
+                json.dumps(response_data),
+                content_type="application/json"
+            )
 
 
 class PostListView(ListView):
@@ -68,6 +129,10 @@ class PostListView(ListView):
         context = super().get_context_data(**kwargs)
         context['latest'] = latest
         return context
+
+    def post(self, request, *args, **kwargs):
+        response_data = {}
+
 
 
 class UserPostListView(ListView):
