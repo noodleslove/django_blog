@@ -10,7 +10,6 @@ class Post(models.Model):
     content = models.TextField()
     images = models.ImageField(upload_to='post_pics', blank=True, null=True)
     likes = models.ManyToManyField(User, blank=True, related_name='post_likes')
-    dislikes = models.ManyToManyField(User, blank=True, related_name='post_dislikes')
     date_posted = models.DateTimeField(default=timezone.now)
     author = models.ForeignKey(User, related_name='posts', on_delete=models.CASCADE)
 
@@ -38,7 +37,7 @@ class Comment(models.Model):
     date_posted = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f'Comment by {self.author}'
+        return f'Comment of post-{self.post.pk} by {self.author.username}: {self.text}'
 
     def get_absolute_url(self):
         return reverse('post-detail', kwargs={'pk': self.post.pk})

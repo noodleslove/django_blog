@@ -18,7 +18,7 @@
                 <img class="img-fluid rounded" src="{{ post.images.url }}" alt="...">
               </div>
             {% endif %}
-            <form method="POST" data-index-number="{{ post.pk }}" class="likes-form form-inline">
+            <form method="POST" data-index-number="{{ post.pk }}" class="likes-form form-inline" data-url="{% url 'post-likes' post.pk %}">
               {% csrf_token %}
               <div class="form-group mb-2 mr-2">
                 <a class="text-decoration-none mt-2" data-toggle="collapse" href="#collapseExample_{{ post.id }}" role="button" aria-expanded="false" aria-controls="collapseExample_{{ post.id }}">

@@ -16,6 +16,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.forms.models import model_to_dict
+from django.core import serializers
 
 
 
@@ -62,8 +63,7 @@ def test(request):
     return render(request, 'blog/test.html', content)
 
 
-@login_required
-def likes_toggle(request, pk):
+def likes_toggle(request, pk, username=None):
     if request.method == 'POST':
         response_data = {}
 
@@ -96,7 +96,6 @@ def likes_toggle(request, pk):
         return JsonResponse(response_data, status=200)
 
 
-@login_required
 def comment_create(request, pk):
     if request.method == 'POST':
         if request.user.is_authenticated:
@@ -106,15 +105,38 @@ def comment_create(request, pk):
             comment = Comment(text=comment_text, author=request.user, post=post)
             comment.save()
 
-            response_data['result'] = 'Create post successful!'
             response_data['postPk'] = pk
             response_data['text'] = comment.text
+            response_data['date'] = comment.date_posted.strftime('%B %d, %Y %I:%M %p')
             response_data['author'] = comment.author.username
 
             return HttpResponse(
                 json.dumps(response_data),
                 content_type="application/json"
             )
+
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            response_data = {}
+            comments = Comment.objects.filter(post__pk=pk).order_by('-date_posted')
+
+            if comments:
+                response_data['context'] = []
+                for comment in comments:
+                    pack = {
+                        'pk': comment.pk,
+                        'postPk': comment.post.pk,
+                        'author': comment.author.username,
+                        'date': comment.date_posted.strftime('%B %d, %Y %I:%M %p'),
+                        'text': comment.text
+                    }
+                    response_data['context'].append(pack)
+
+                return JsonResponse(response_data, status=200)
+            else:
+                response_data['comments'] = 'no comments'
+                response_data['postPk'] = pk
+                return JsonResponse(response_data, status=200)
 
 
 class PostListView(ListView):
@@ -129,10 +151,6 @@ class PostListView(ListView):
         context = super().get_context_data(**kwargs)
         context['latest'] = latest
         return context
-
-    def post(self, request, *args, **kwargs):
-        response_data = {}
-
 
 
 class UserPostListView(ListView):
