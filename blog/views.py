@@ -27,10 +27,6 @@ def home(request):
     return render(request, 'blog/home.html', context)
 
 
-def about(request):
-    return render(request, 'blog/about.html')
-
-
 def detail_view(request, pk):
     object = get_object_or_404(Post, pk=pk)
     form = CommentCreateForm(request.POST or None)
@@ -56,11 +52,15 @@ def detail_view(request, pk):
 
 
 def test(request):
-    content = {
+    context = {
         'posts': Post.objects.all(),
         'latest': Post.objects.order_by('-date_posted')[0],
     }
-    return render(request, 'blog/test.html', content)
+
+    if request.user.is_authenticated:
+        context['user'] = User.objects.filter(username=request.user.username)[0];
+
+    return render(request, 'blog/test.html', context)
 
 
 def likes_toggle(request, pk, username=None):
@@ -109,6 +109,7 @@ def comment_create(request, pk):
             response_data['text'] = comment.text
             response_data['date'] = comment.date_posted.strftime('%B %d, %Y %I:%M %p')
             response_data['author'] = comment.author.username
+            response_data['url'] = comment.author.profile.image.url
 
             return HttpResponse(
                 json.dumps(response_data),
@@ -116,27 +117,26 @@ def comment_create(request, pk):
             )
 
     if request.method == 'GET':
-        if request.user.is_authenticated:
-            response_data = {}
-            comments = Comment.objects.filter(post__pk=pk).order_by('-date_posted')
+        response_data = {}
+        comments = Comment.objects.filter(post__pk=pk).order_by('-date_posted')
 
-            if comments:
-                response_data['context'] = []
-                for comment in comments:
-                    pack = {
-                        'pk': comment.pk,
-                        'postPk': comment.post.pk,
-                        'author': comment.author.username,
-                        'date': comment.date_posted.strftime('%B %d, %Y %I:%M %p'),
-                        'text': comment.text
-                    }
-                    response_data['context'].append(pack)
+        if comments:
+            response_data['context'] = []
+            for comment in comments:
+                pack = {
+                    'pk': comment.pk,
+                    'postPk': comment.post.pk,
+                    'author': comment.author.username,
+                    'date': comment.date_posted.strftime('%B %d, %Y %I:%M %p'),
+                    'text': comment.text
+                }
+                response_data['context'].append(pack)
 
-                return JsonResponse(response_data, status=200)
-            else:
-                response_data['comments'] = 'no comments'
-                response_data['postPk'] = pk
-                return JsonResponse(response_data, status=200)
+            return JsonResponse(response_data, status=200)
+        else:
+            response_data['comments'] = 'no comments'
+            response_data['postPk'] = pk
+            return JsonResponse(response_data, status=200)
 
 
 class PostListView(ListView):
@@ -147,9 +147,14 @@ class PostListView(ListView):
     paginate_by = 5
 
     def get_context_data(self, **kwargs):
-        latest = Post.objects.order_by('-date_posted')[0]
         context = super().get_context_data(**kwargs)
-        context['latest'] = latest
+        
+        if Post.objects.all().count():
+            context['latest'] = Post.objects.order_by('-date_posted')[0]
+
+        if self.request.user.is_authenticated:
+            context['user'] = User.objects.filter(username=self.request.user.username)[0]
+            
         return context
 
 
@@ -182,22 +187,6 @@ class PostLikesToggle(LoginRequiredMixin, RedirectView):
             if user in object.dislikes.all():
                 object.dislikes.remove(user)
             object.likes.add(user)
-
-        return self.request.META.get('HTTP_REFERER')
-
-
-class PostDislikesToggle(LoginRequiredMixin, RedirectView):
-    def get_redirect_url(self, *args, **kwargs):
-        pk = self.kwargs.get('pk')
-        object = get_object_or_404(Post, pk=pk)
-        user = self.request.user
-
-        if user in object.dislikes.all():
-            object.dislikes.remove(user)
-        else:
-            if user in object.likes.all():
-                object.likes.remove(user)
-            object.dislikes.add(user)
 
         return self.request.META.get('HTTP_REFERER')
 

@@ -1,82 +1,110 @@
 {% extends "blog/base.html" %}
 {% load static %}
 {% block content %}
-  <h1 class="mb-3" >Posts by {{ view.kwargs.username }} ({{ page_obj.paginator.count }})</h1>
-  {% for post in posts %}
-    <article class="media content-section">
-      <div class="row pr-1 m-0" style="width: 100%;">
-        <div class="media col-md-12 p-0 m-0">
+  <div class="col-md-8">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    <h2 class="mb-3 font-weight-light">Posts by {{ view.kwargs.username }} ({{ page_obj.paginator.count }})</h2>
+    {% for post in posts %}
+      <article class="content-section clearfix" id="{{ post.pk }}">
+        <div class="media border-bottom">
           <img class="rounded-circle article-img" src="{{ post.author.profile.image.url }}">
           <div class="media-body">
             <div class="article-metadata">
               <a class="mr-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
               <small class="text-muted">{{ post.date_posted | date:"F d, Y" }}</small>
             </div>
-            <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
-            <p class="article-content">{{ post.content }}</p>
-            {% if post.images %}
-              <div class="mb-3">
-                <img class="img-fluid rounded" src="{{ post.images.url }}" alt="...">
-              </div>
-            {% endif %}
-            <form method="POST" data-index-number="{{ post.pk }}" class="likes-form form-inline" data-url="{% url 'user-posts-likes' post.author.username post.pk %}">
-              {% csrf_token %}
-              <div class="form-group mb-2 mr-2">
-                <a class="text-decoration-none mt-2" data-toggle="collapse" href="#collapseExample_{{ post.id }}" role="button" aria-expanded="false" aria-controls="collapseExample_{{ post.id }}">
-                  <i class="fas fa-comment-dots fa-2x"></i>
-                </a>
-              </div>
-              <button class="btn p-0" type="submit">
-                <i class="fas fa-heart fa-2x" style="color: tomato;" data-index-number="{{ post.pk }}"></i>
-                <i class="far fa-heart fa-2x" style="color: tomato;" data-index-number="{{ post.pk }}"></i>
-              </button>
-            </form>
           </div>
         </div>
-        <div class="collapse mt-2 mb-2 col-md-12" id="collapseExample_{{ post.id }}">
-          <div class="card card-body p-2">
-            {% for comment in post.comments.all reversed %}
-              <p class="comment align-middle m-0 p-0">
-                <a class="p-0 mr-2 font-weight-bold" href="{% url 'user-posts' comment.author.username %}">{{ comment.author }} </a>
-                {{ comment.text }}
-              </p>
-            {% empty %}
-              No comments here yet :(
+        {% if post.images %}
+          <div class="text-center bg-dark">
+            <img class="img-fluid" src="{{ post.images.url }}" alt="...">
+          </div>
+        {% endif %}
+        <form method="POST" data-index-number="{{ post.pk }}" class="article-menu likes-form form-inline" data-url="{% url 'post-likes' post.pk %}">
+          {% csrf_token %}
+          <div class="form-group d-flex w-100">
+            <button class="btn btn-sm mr-3 likes-btn" type="button">
+              <img src="{% static 'blog/img/heart-outline.svg' %}" alt="likes button" width="28" height="25" loading="lazy" data-index-number="{{ post.pk }}" class="likes-img">
+              <!-- <img src="{% static 'blog/img/heart-solid-pink.svg' %}" alt="likes button" width="28" height="25" loading="lazy" data-index-number="{{ post.pk }}" class="liked"> -->
+            </button>
+            <a class="btn btn-sm" href="{% url 'post-detail' post.pk %}" role="button">
+              <img src="{% static 'blog/img/comment-outline.svg' %}" alt="comments button" width="28" height="25" loading="lazy" class="comment-btn">
+            </a>
+            <button type="button" class="btn btn-sm bookmark-btn ml-auto">
+              <img src="{% static 'blog/img/bookmark-outline.svg' %}" alt="boookmark button" width="28" height="25" loading="lazy" data-index-number="{{ post.pk }}" class="bookmark-img">
+              <!-- <img src="{% static 'blog/img/bookmark-solid-black.svg' %}" alt="boookmark button" width="28" height="25" loading="lazy" data-index-number="{{ post.pk }}" class="bookmarked"> -->
+            </button>
+          </div>
+        </form>
+        <div class="article-content container px-3">
+          <h4>{{ post.title }}</h4>
+          <p>{{ post.content }}</p>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% if post.get_comments_count %}
+            <li class="list-group-item py-1 border-0"><a href="{% url 'post-detail' post.pk %}" class="text-muted text-decoration-none">View all {{ post.get_comments_count }} comments</a></li>
+            {% for comment in post.get_latest_2_comments %}
+              <li class="list-group-item px-3 py-1 border-0"><span class="text-muted mr-2 text-uppercase font-weight-bold">{{ comment.author }}</span>{{ comment.text }}</li>
             {% endfor %}
-          </div>
-        </div>
-        <div class="col-md-12 mt-2">
-          <form method="POST" action="{% url 'post-detail' post.pk %}?next={% url 'blog-home' %}" class="commenting-form">
-            {% csrf_token %}
-            <div class="input-group mb-1">
-              <input type="text" class="form-control" placeholder="Add a comment..." name="text" id="text_id">
-              <div class="input-group-append">
-                <button class="btn btn-outline-secondary" type="submit" id="text_id">
-                  Post
-                </button>
-              </div>
+          {% endif %}
+        </ul>
+        <form method="POST" class="comment-form" data-index-number="{{ post.pk }}" data-url="{% url 'post-detail' post.pk %}">
+          {% csrf_token %}
+          <div class="input-group">
+            <div class="input-group border-top">
+              <input type="text" class="form-control comment-input border-0" placeholder="Add a comment..." aria-label="comment box" id="comment-{{ post.id }}">
+              <button type="submit" class="comment-post-btn btn btn-sm px-1 disabled" disabled>Post</button>
             </div>
-          </form>
+          </div>
+        </form>
+      </article>
+    {% endfor %}
+    {% if is_paginated %}
+      <nav aria-label="Page navigation" class="mb-4">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1">First</a>
+            </li>
+          {% endif %}
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+          {% endfor %}
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  </div>
+  <div class="col-md-4 sidebar-section">
+    <div class="position-fixed w-25 px-1">
+      <div class="media">
+        <img src="{{ user.profile.image.url }}" alt="user icon" class="rounded-circle article-img">
+        <div class="media-body">
+          <span class="font-weight-light">Welcome back, {{ user.username }}</span>
         </div>
       </div>
-    </article>
-  {% endfor %}
-  {% if is_paginated %}
-    {% if page_obj.has_previous %}
-      <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
-      <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-    {% endif %}
-    {% for num in page_obj.paginator.page_range %}
-      {% if page_obj.number == num %}
-        <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
-      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-        <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
-      {% endif %}
-    {% endfor %}
-    {% if page_obj.has_next %}
-      <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
-      <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
-    {% endif %}
-  {% endif %}
-  <script src="{% static 'blog/home.js' %}"></script>
+      <div class="list-group">
+        {% if latest %}
+          <a href="{% url 'post-detail' latest.pk %}" class="list-group-item list-group-item-action text-capitalize">Latest Post</a>
+        {% endif %}
+        <a href="#" class="list-group-item list-group-item-action">Announcements</a>
+        <a href="#" class="list-group-item list-group-item-action">Calendars</a>
+      </div>
+    </div>
+  </div>
+  <script src="{% static 'blog/script.js' %}"></script>
 {% endblock content %}

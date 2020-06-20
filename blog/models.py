@@ -29,6 +29,19 @@ class Post(models.Model):
     def get_absolute_url(self):
         return reverse('post-detail', kwargs={'pk': self.pk})
 
+    @property
+    def get_latest_2_comments(self):
+        return self.comments.all().order_by('-date_posted')[:2]
+
+    @property
+    def get_comments_count(self):
+        return Comment.objects.filter(post=self).count()
+
+    @property
+    def get_likes_count(self):
+        return self.likes.count()
+    
+
 
 class Comment(models.Model):
     post = models.ForeignKey('blog.Post', on_delete=models.CASCADE, related_name='comments')
