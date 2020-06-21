@@ -3,31 +3,134 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <script src="https://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ=" crossorigin="anonymous"></script>
-  <script src="{% static 'blog/script.js' %}"></script>
-  <link rel="stylesheet" href="{% static 'blog/style.css' %}">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V" crossorigin="anonymous">
-  <title>The Complete jQuery Course - Course Code</title>
-</head>
-<body>
-  <div id="content">
-    <h1>The Complete jQuery Course - Project Structure</h1>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <div class="red-box">Red</div>
-    <div class="green-box">Green</div>
-    <div class="blue-box">Blue</div>
-    <div class="clear"></div>
-    <div>
-      <form action="/post/1/" method="POST" class="comment-form" data-index-number="1">
-        {% csrf_token %}
-          <div class="input-group mb-1">
-            <input type="text" class="form-control" placeholder="Add a comment..." id="comment-1">
-            <div class="input-group-append">
-              <button class="btn btn-outline-secondary" type="submit">Post</button>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+  <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script> 
+
+  <link rel="stylesheet" href="{% static 'blog/test-style.css' %}"> 
+
+  <title>Test Page | Demo</title>
+</head>
+<body class="bg-light">
+  <header class="site-header">
+      <nav class="navbar navbar-expand-md navbar-light bg-white fixed-top">
+        <div class="container">
+          <a class="navbar-brand mr-4" href="{% url 'blog-home' %}">
+            <img src="{% static 'blog/img/bebo-logo.svg' %}" width="35" height="30" alt="" loading="lazy">
+          </a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarToggle">
+            <div class="navbar-nav mr-auto">
+              <a class="nav-item nav-link" href="{% url 'blog-home' %}">Home</a>
+              <a class="nav-item nav-link" href="#">Chat</a>
+            </div>
+            <!-- Navbar Right Side -->
+            <div class="navbar-nav">
+              {% if user.is_authenticated %}
+                <a class="nav-item nav-link" href="{% url 'post-create' %}">New Post</a>
+                <a class="nav-item nav-link" href="#">Movie Time</a>
+                <a class="nav-item nav-link" href="{% url 'profile' %}">Profile</a>
+                <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
+              {% else %}
+                <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
+                <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+              {% endif %}
             </div>
           </div>
-      </form>
-      <ul id="talk"></ul>
+        </div>
+      </nav>
+    </header>
+
+  <main role="main" class="container">
+    <div class="row">
+      <div class="col-md-8">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+        {% for post in posts %}
+          <article class="content-section clearfix" id="{{ post.pk }}">
+            <div class="media">
+              <img class="rounded-circle article-img" src="{{ post.author.profile.image.url }}">
+              <div class="media-body">
+                <div class="article-metadata">
+                  <a class="mr-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
+                  <small class="text-muted">{{ post.date_posted | date:"F d, Y" }}</small>
+                </div>
+              </div>
+            </div>
+            {% if post.images %}
+              <div class="text-center bg-dark">
+                <img class="img-fluid" src="{{ post.images.url }}" alt="...">
+              </div>
+            {% endif %}
+            <form method="POST" data-index-number="{{ post.pk }}" class="article-menu likes-form form-inline" data-url="{% url 'post-likes' post.pk %}">
+              {% csrf_token %}
+              <div class="form-group">
+                <button class="btn btn-sm mr-3 likes-btn" type="button">
+                  <img src="{% static 'blog/img/heart-outline.svg' %}" alt="likes button" width="28" height="25" loading="lazy" data-index-number="{{ post.pk }}" class="disliked">
+                  <img src="{% static 'blog/img/heart-solid-pink.svg' %}" alt="likes button" width="28" height="25" loading="lazy" data-index-number="{{ post.pk }}" class="liked">
+                </button>
+                <a class="btn btn-sm mr-3" href="{% url 'post-detail' post.pk %}" role="button">
+                  <img src="{% static 'blog/img/comment-outline.svg' %}" alt="comments button" width="28" height="25" loading="lazy" class="comment-btn">
+                </a>
+                <button type="button" class="btn btn-sm bookmark-btn">
+                  <img src="{% static 'blog/img/bookmark-outline.svg' %}" alt="boookmark button" width="28" height="25" loading="lazy" data-index-number="{{ post.pk }}" class="bookmark">
+                  <img src="{% static 'blog/img/bookmark-solid-black.svg' %}" alt="boookmark button" width="28" height="25" loading="lazy" data-index-number="{{ post.pk }}" class="bookmarked">
+                </button>
+              </div>
+            </form>
+            <div class="article-content container">
+              <h4>{{ post.title }}</h4>
+              <p>{{ post.content }}</p>
+            </div>
+            {% if post.get_comments_count %}
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item py-1 border-0"><a href="{% url 'post-detail' post.pk %}" class="text-muted text-decoration-none">View all {{ post.get_comments_count }} comments</a></li>
+                {% for comment in post.get_latest_2_comments %}
+                  <li class="list-group-item px-3 py-1 border-0"><span class="text-muted mr-2 text-uppercase font-weight-bold">{{ comment.author }}</span>{{ comment.text }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+            <form method="POST" class="comment-form" data-index-number="{{ post.pk }}" data-url="{% url 'post-detail' post.pk %}">
+              {% csrf_token %}
+              <div class="input-group">
+                <div class="input-group">
+                  <input type="text" class="form-control comment-input" placeholder="Add a comment..." aria-label="comment box">
+                  <button type="submit" class="comment-post-btn btn btn-sm px-1 disabled" disabled>Post</button>
+                </div>
+              </div>
+            </form>
+          </article>
+        {% endfor %}
+      </div>
+      <div class="col-md-4">
+        <div class="position-fixed w-25 px-1">
+          <div class="media">
+            <img src="{{ user.profile.image.url }}" alt="user icon" class="rounded-circle article-img">
+            <div class="media-body">
+              <span class="sidebar-title">Welcome back, {{ user.username }}</span>
+            </div>
+          </div>
+          <div class="list-group">
+            <a href="{% url 'post-detail' latest.pk %}" class="list-group-item list-group-item-action text-capitalize">Latest Post</a>
+            <a href="#" class="list-group-item list-group-item-action">Announcements</a>
+            <a href="#" class="list-group-item list-group-item-action">Calendars</a>
+          </div>
+        </div>
+      </div>
     </div>
+  </main>
+  
+  <script src="{% static 'blog/script.js' %}"></script>
 </body>
 </html>
