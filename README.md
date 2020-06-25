@@ -1,9 +1,7 @@
 
-	DAR-LING
+# DJANGO BLOG
 
----------------------------------------
 Author: Little Blue
-
 Date: 27 March 2020
 
-Description: A blog website built with django framework, react and jquery
+This is just a website I build using django. ^_^
