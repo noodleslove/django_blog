@@ -1,0 +1,117 @@
+{% extends 'chat/base.html' %}
+{% block content %}
+    <div class="container-fluid h-100">
+        <div class="row justify-content-center h-100">
+            <div class="col-md-12 col-xl-10 chat">
+                <div class="card">
+                    <div class="card-header msg_head">
+                        <div class="d-flex bd-highlight">
+                            <div class="user_info">
+                                <span>Chat - {{ room_name }}</span>
+                                <p>1767 Messages</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body msg_card_body px-1">
+                        <div class="d-flex justify-content-start mb-3">
+                            <div class="msg_cotainer">
+                                Hi, how are you samim?
+                                <span class="msg_time">8:40 AM, Today</span>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end mb-3">
+                            <div class="msg_cotainer_send">
+                                Hi Khalid i am good tnx how about you?
+                                <span class="msg_time_send">8:55 AM, Today</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <input id="chat-handle-input" class="form-control type_handle" placeholder="Type your name...">
+                            </div>
+                            <input id="chat-message-input" class="form-control type_msg" placeholder="Type your message...">
+                            <div class="input-group-append">
+                                <input id="chat-message-submit" class="input-group-text send_btn" type="button" value="Send">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ room_name|json_script:"room-name" }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"></script>
+    <script>
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+        const chatSocket = new ReconnectingWebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        );
+
+        updateScroll = () => {
+            const element = document.querySelector('.msg_card_body');
+            element.scrollTop = element.scrollHeight;
+        }
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            // document.querySelector('#chat-log').value += (data.message + '\n');
+
+            if (data.handle === document.querySelector('#chat-handle-input').value) {
+                var markup = `
+                    <div class="d-flex justify-content-end mb-3">
+                        <div class="msg_cotainer_send">
+                            ${data.message}
+                        </div>
+                    </div>
+                `;
+            } else {
+                var markup = `
+                    <div class="d-flex justify-content-start mb-3">
+                        <div class="msg_cotainer">
+                            ${data.message}
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.querySelector('.msg_card_body').innerHTML += markup;
+            updateScroll();
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            // enter, return
+            if (e.keyCode === 13) {
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const handleInputDom = document.querySelector('#chat-handle-input');
+
+            if (messageInputDom.value) {
+                const message = messageInputDom.value;
+                const handle = handleInputDom.value;
+                chatSocket.send(JSON.stringify({
+                    'handle': handle,
+                    'message': message
+                }));
+                messageInputDom.value = '';
+            }
+            
+        };
+    </script>
+{% endblock %}
