@@ -1,39 +1,45 @@
-{% extends 'chat/base.html' %}
+{% extends 'blog/base.html' %}
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'chat/style.css' %}">
+{% endblock %}
 {% block content %}
-    <div class="container-fluid h-100">
-        <div class="row justify-content-center h-100">
-            <div class="col-md-12 col-xl-10 chat">
-                <div class="card">
-                    <div class="card-header msg_head">
-                        <div class="d-flex bd-highlight">
-                            <div class="user_info">
-                                <span>Chat - {{ room_name }}</span>
-                                <p>1767 Messages</p>
+    <div class="col-md-12">
+        <div class="container-fluid h-100">
+            <div class="row justify-content-center h-100">
+                <div class="col-md-12 col-xl-10 chat">
+                    <div class="card">
+                        <div class="card-header msg_head">
+                            <div class="d-flex bd-highlight">
+                                <div class="user_info">
+                                    <span>Chat - {{ room_name }}</span>
+                                    <p>1767 Messages</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="card-body msg_card_body px-1">
-                        <div class="d-flex justify-content-start mb-3">
-                            <div class="msg_cotainer">
-                                Hi, how are you samim?
-                                <span class="msg_time">8:40 AM, Today</span>
+                        <div class="card-body msg_card_body px-1">
+                            <!-- <div class="d-flex justify-content-start mb-3">
+                                <div class="msg_cotainer">
+                                    Hi, how are you samim?
+                                    <span class="msg_time">8:40 AM, Today</span>
+                                </div>
                             </div>
+                            <div class="d-flex justify-content-end mb-3">
+                                <div class="msg_cotainer_send">
+                                    Hi Khalid i am good tnx how about you?
+                                    <span class="msg_time_send">8:55 AM, Today</span>
+                                </div>
+                            </div> -->
                         </div>
-                        <div class="d-flex justify-content-end mb-3">
-                            <div class="msg_cotainer_send">
-                                Hi Khalid i am good tnx how about you?
-                                <span class="msg_time_send">8:55 AM, Today</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <input id="chat-handle-input" class="form-control type_handle" placeholder="Type your name...">
-                            </div>
-                            <input id="chat-message-input" class="form-control type_msg" placeholder="Type your message...">
-                            <div class="input-group-append">
-                                <input id="chat-message-submit" class="input-group-text send_btn" type="button" value="Send">
+                        <div class="card-footer">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <input id="chat-handle-input" class="form-control type_handle" placeholder="Type your name...">
+                                </div>
+                                <input id="chat-message-input" class="form-control type_msg" placeholder="Type your message...">
+                                <div class="input-group-append">
+                                    <input id="chat-message-submit" class="input-group-text send_btn" type="button" value="Send">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -41,7 +47,7 @@
             </div>
         </div>
     </div>
-
+    
     {{ room_name|json_script:"room-name" }}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"></script>
     <script>
