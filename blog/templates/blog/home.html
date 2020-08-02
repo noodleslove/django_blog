@@ -41,8 +41,8 @@
           </div>
         </form>
         <div class="article-content container px-3">
-          <h4>{{ post.title }}</h4>
-          <p>{{ post.content }}</p>
+          <h4 class="m-0">{{ post.title }}</h4>
+          <p class="m-0">{{ post.content }}</p>
         </div>
         <ul class="list-group list-group-flush" data-index-number="{{ post.pk }}">
           {% if post.get_comments_count %}
