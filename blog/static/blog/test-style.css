@@ -103,6 +103,10 @@ a.text-decoration-none:hover,
   vertical-align: middle;
 }
 
+.article-content {
+  white-space: pre-line;
+}
+
 .account-img {
   height: 8rem;
   width: 8rem;
