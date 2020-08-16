@@ -58,6 +58,7 @@ urlpatterns = [
     ),
     path('', include('blog.urls')),
     path('chat/', include('chat.urls')),
+    path('twilio/', include('twilio_msg.urls'))
 ]
 
 if settings.DEBUG:

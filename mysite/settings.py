@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'twilio_msg.apps.TwilioMsgConfig',
     'users.apps.UsersConfig',
     'blog.apps.BlogConfig',
     'crispy_forms',
